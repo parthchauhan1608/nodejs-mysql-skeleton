@@ -1,35 +1,30 @@
-const db = require('../../models');
-const User = db.user;
-const Op = db.Op;
+const utils = require("../../helpers/utils");
+const responseMessages = require("../../constants/responseMessages");
+
 const services = {};
 
 /* 
   @description fetches a user from the database
   @params query - query for fetching the user
 */
-services.getUser = async(query) => {
-    const user = await User.findOne(query)
+services.getUser = async (query, deselect) => {
 
-    return user;
-}
+  return 'user';
+};
 
-services.getUsers = async(query) => {
-    const users = await User.findAll(query);
+services.getUsers = async (query) => {
 
-    return users;
-}
+  return 'users';
+};
 
-services.createUser = async(user) => {
-    const newUser = await User.create(user);
+services.createUser = async (user) => {
 
-    return newUser;
-}
+  return 'newUser';
+};
 
-services.updateUser = async(query, updatedUser, options) => {
-    console.log({ query, updatedUser })
-    const user = await User.update(updatedUser, query, options);
+services.updateUser = async (id, updatedUser) => {
 
-    return user;
-}
+  return 'user';
+};
 
 module.exports = services;

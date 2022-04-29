@@ -8,9 +8,9 @@ const validators = {};
   @notes feel free to modify this according to your needs
 */
 validators.isEmailValid = () => {
-    return body("email")
-        .isEmail()
-        .withMessage(responseMessages.ERROR.invalidEmail);
+  return body("email")
+  .isEmail()
+  .withMessage(responseMessages.invalidEmail);
 }
 
 /* 
@@ -18,9 +18,9 @@ validators.isEmailValid = () => {
   @notes feel free to modify this according to your needs
 */
 validators.isPasswordValid = () => {
-    return body("password")
-        .matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")
-        .withMessage(responseMessages.ERROR.invalidPassword);
+  return body("password")
+  .matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$")
+  .withMessage(responseMessages.invalidPassword);
 }
 
 module.exports = validators;

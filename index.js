@@ -3,27 +3,27 @@ const { json, urlencoded } = express;
 const cors = require("cors");
 const morgan = require("morgan");
 const routes = require("./routes");
-const db = require("./models");
-require("dotenv").config();
+const i18n = require('./config/i18n');
+require('./config/winston');
+require("dotenv/config");
 
 // create express app instance
 const app = express();
+global.config = require('./config/config');
+global.models = require('./db/models');
 
 // apply middlewares
 app.use(cors());
-app.use(morgan(process.env.MORGAN_LOGGING_MODE));
+app.use(morgan(global.config.MORGAN_LOGGING_MODE));
 app.use(json());
 app.use(urlencoded({ extended: true }));
+
+/* Set Localisation  */
+app.use(i18n.init);
+
 app.use("/api/v1/", routes);
 
-// connect to the mysql server and starting listening to the app server
-db.sequelize.sync()
-    .then(() => {
-        app.listen(process.env.PORT, () => {
-            console.log(`Server listening at port ${process.env.PORT}.`);
-        })
-    })
-    .catch((err) => {
-        console.log("Error in connecting databse", err);
-        process.exit(1);
-    })
+
+app.listen(global.config.PORT, () => {
+    global.logger.info(`Server listening at port ${global.config.PORT}.`);
+});

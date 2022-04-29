@@ -1,42 +1,47 @@
 const express = require("express");
-const controllers = require('./controllets');
-const validators = require('./validators');
-const commonMiddlewares = require('../common/commonMiddlewares');
-const middlewares = require('./middlewares');
+const middlewares = require("./middlewares");
+const controllers = require("./controllers");
+const validators = require("./validators");
+const commonMiddlewares = require("../common/commonMiddlewares");
+
 const router = express.Router();
 
-/**
- * user signup route
- */
+const signInMiddlewares = [
+  validators.isEmailValid(),
+  validators.isPasswordValid(),
+  commonMiddlewares.validationHandler,
+  middlewares.doesUserExist,
+  controllers.signIn,
+];
+router.post("/signin", signInMiddlewares);
+
 const signupMiddlewares = [
-    validators.isEmailValid(),
-    validators.isPasswordValid(),
-    commonMiddlewares.checkForErrors,
-    middlewares.doesUserExist,
-    controllers.signUp,
+  validators.isEmailValid(),
+  validators.isPasswordValid(),
+  commonMiddlewares.validationHandler,
+  middlewares.doesUserExist,
+  controllers.signUp,
 ];
 router.post("/signup", signupMiddlewares);
 
-const signInMiddlewares = [
-    validators.isEmailValid(),
-    validators.isPasswordValid(),
-    commonMiddlewares.checkForErrors,
-    middlewares.doesUserExist,
-    controllers.signIn,
-]
-router.post("/signin", signInMiddlewares);
-
 const updateUserMiddlewares = [
-    commonMiddlewares.isUserAuthenticated,
-    middlewares.doesUserExist,
-    controllers.updateUser,
+  commonMiddlewares.isUserAuthenticated,
+  middlewares.doesUserExist,
+  controllers.updateUser,
 ];
 router.put("/update-user", updateUserMiddlewares);
 
+
 const getAllUsersMiddlewares = [
-    commonMiddlewares.isUserAuthenticated,
-    controllers.getAllUsers
+  commonMiddlewares.isUserAuthenticated,
+  controllers.getAllUsers
 ];
 router.get("/all", getAllUsersMiddlewares);
+
+const getUserMiddlewares = [
+  commonMiddlewares.isUserAuthenticated,
+  controllers.getUser,
+];
+router.get("/:id", getUserMiddlewares);
 
 module.exports = router;

@@ -1,68 +1,58 @@
-const validateData = require("../../utils/validateData");
+const utils = require("../../helpers/utils");
 const jwt = require("../../helpers/jwt");
-const responseMessages = require("../../constants/responseMessages");
 const { validationResult } = require("express-validator");
+const { SERVERERROR, UNAUTHORISED, ERROR400 } = require('../../constants/common');
 
 const middlewares = {};
 
-/* 
+/**
   @description check whether the user is authenticated
   @notes modify according to your needs only if required to do so
 */
-middlewares.isUserAuthenticated = async(request, response, next) => {
-    let token = request.headers["authorization"];
-    try {
-        if (validateData.isEmpty(token)) {
-            throw Error(JSON.stringify(responseMessages.ERROR.unauthorized));
-        }
-
-        token = token.split(" ")[1];
-        const user = jwt.verifyToken(token);
-
-        if (validateData.isEmpty(user)) {
-            throw Error(JSON.stringify(responseMessages.ERROR.unauthorized));
-        }
-
-        request.userTokenData = user;
-        // request.body.email = user.email
-        next();
-    } catch (error) {
-
-        console.log("commonMiddleware.isUserAuthenticated ", error)
-
-        const errorMessage = JSON.parse(error.message);
-        const code = errorMessage && errorMessage.code;
-        const message = errorMessage && errorMessage.message;
-
-        return response.status(code).json({
-            message
-        });
+middlewares.isUserAuthenticated = async (request, response, next) => {
+  try {
+    global.logger.info(`middlewares.isUserAuthenticated`);
+    let token = request.headers["authorization"] || '';
+    const userData = jwt.verifyToken(token);
+    if (utils.isEmpty(userData)) {
+      return response.status(UNAUTHORISED.CODE).send({
+        status: false,
+        message: global.t(UNAUTHORISED.MESSAGE)
+      });
     }
+    request.userTokenData = userData;
+    next();
+  } catch (error) {
+    global.logger.error(`middlewares.isUserAuthenticated ${error}`);
+    return response.status(SERVERERROR.CODE).send({
+      status: false,
+      message: global.t(SERVERERROR.MESSAGE)
+    });
+  }
 };
 
-/* 
+/** 
   @description checks whether there are errors in request
   @notes modify according to your needs only if required to do so
 */
-middlewares.checkForErrors = async(request, response, next) => {
+middlewares.validationHandler = async (request, response, next) => {
+  try {
+    global.logger.info(`middlewares.validationHandler`);
     const errors = validationResult(request);
-
-    try {
-        if (validateData.isEmpty(errors) || validateData.isEmpty(errors.array())) {
-            return next();
-        }
-
-        throw Error(JSON.stringify({ code: 400, message: errors.array()[0].msg }));
-    } catch (error) {
-        console.log("commonMiddlewares.checkForErrors", error);
-        const errorMessage = JSON.parse(error.message);
-        const code = errorMessage && errorMessage.code;
-        const message = errorMessage && errorMessage.message;
-
-        return response.status(code).json({
-            message,
-        });
+    if (!utils.isEmpty(errors)) {
+      return response.status(ERROR400).send({
+        status: false,
+        message: errors.array()[0].msg
+      });
     }
+    return next();
+  } catch (error) {
+    global.logger.error(`middlewares.validationHandler ${error}`);
+    return response.status(SERVERERROR.CODE).send({
+      status: false,
+      message: global.t(SERVERERROR.MESSAGE)
+    });
+  }
 };
 
-module.exports = middlewares
+module.exports = middlewares;

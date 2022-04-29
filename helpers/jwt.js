@@ -1,46 +1,30 @@
 const jsonwebtoken = require("jsonwebtoken");
-const responseMessages = require("../constants/responseMessages");
-const validateData = require("../utils/validateData");
 
 const jwt = {};
 
-jwt.signToken = (data) => {
-    if (validateData.isEmpty(data)) {
-        throw Error(JSON.stringify(responseMessages.ERROR.invalidData));
+jwt.signToken = (data, expiresIn = null) => {
+  return jsonwebtoken.sign(
+    data,
+    global.config.JWT_SECRET,
+    {
+      expiresIn: expiresIn ? expiresIn : '1h'
     }
-
-    if (validateData.isEmpty(process.env.JWT_SECRET)) {
-        throw Error(JSON.stringify(responseMessages.ERROR.tokenCreationFailed));
-    }
-
-    const token = jsonwebtoken.sign(data, process.env.JWT_SECRET, {
-        expiresIn: "1d"
-    })
-
-    if (validateData.isEmpty(token)) {
-        throw Error(JSON.stringify(responseMessages.ERROR.tokenCreationFailed));
-    }
-
-    return token;
-}
+  );
+};
 
 jwt.verifyToken = (token) => {
+  let decoded = {};
+  if (token) {
     try {
-        if (validateData.isEmpty(token)) {
-            throw Error(JSON.stringify(responseMessages.ERROR.unauthorized));
-        }
-
-        const decodedData = jsonwebtoken.verify(token, process.env.JWT_SECRET);
-        console.log("decoded", decodedData)
-        if (validateData.isEmpty(decodedData)) {
-            throw Error(JSON.stringify(responseMessages.ERROR.unauthorized));
-        }
-
-        return decodedData;
-    } catch (error) {
-        console.log(error);
-        return error.message;
+      decoded = jsonwebtoken.verify(
+        token,
+        jwtUtil.publicKEY,
+        {});
+    } catch (err) {
+      global.logger.error(`Error at verify() - An error occurred while verifying jwt token ${err.message}.`);
     }
-}
+  }
+  return decoded;
+};
 
 module.exports = jwt;
